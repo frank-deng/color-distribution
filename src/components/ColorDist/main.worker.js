@@ -12,13 +12,20 @@ function hex2rgb(str){
 }
 self.addEventListener('message', function(msg){
 	let colorDist = {}, imgData = msg.data.imgData;
-	let count = imgData.width * imgData.height;
+	let count = imgData.width * imgData.height, timestamp = new Date().getTime();
 	for (let i = 0; i < count; i++){
 		let hex = rgb2hex(imgData.data[4*i], imgData.data[4*i+1], imgData.data[4*i+2]);
 		if (colorDist[hex]) {
 			colorDist[hex]++;
 		} else {
 			colorDist[hex] = 1;
+		}
+
+		//Update progress by second
+		let timestampNew = new Date().getTime();
+		if (timestampNew - timestamp > 1000) {
+			timestamp = timestampNew;
+			self.postMessage({progress: i / count});
 		}
 	}
 	self.postMessage({colorDist: colorDist});

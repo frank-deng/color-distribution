@@ -3,15 +3,18 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
-import VueResource from 'vue-resource';
-import ElementUI from 'element-ui'
+
 import 'element-ui/lib/theme-chalk/index.css'
-import DelayMapBatch from 'delay-map-batch'
-global.DelayMapBatch = DelayMapBatch;
+
+import {Upload, Button, Progress} from 'element-ui'
+Vue.use(Upload);
+Vue.use(Button);
+Vue.use(Progress);
 
 Vue.config.productionTip = false
-Vue.use(ElementUI, {zIndex: 3000 });
-Vue.use(VueResource);
+
+import DelayMapBatch from 'delay-map-batch'
+global.DelayMapBatch = DelayMapBatch;
 
 /* eslint-disable no-new */
 new Vue({

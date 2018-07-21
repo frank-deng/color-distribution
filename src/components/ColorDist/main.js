@@ -1,3 +1,4 @@
+import {Message} from 'element-ui'
 window.THREE = require('three');
 require('imports-loader?THREE=three!@/js/FlyControls.js').default;
 const TWEEN = require('@tweenjs/tween.js');
@@ -25,7 +26,8 @@ var centerPoint = {
 export default{
 	data(){
 		return {
-			uploadedFiles: [],
+			progress: undefined,
+			uploadLock: false,
 
 			speed: 1,
 			speedDistance: 10,
@@ -47,6 +49,7 @@ export default{
 	},
 	methods:{
 		fileUploaded(file){
+			this.uploadLock = true;
 			new Promise((resolve, reject)=>{
 				let reader = new FileReader();
 				reader.addEventListener('load', function(event){
@@ -58,6 +61,10 @@ export default{
 					let image = new Image();
 					image.addEventListener('load', function(){
 						resolve(this);
+					});
+					image.addEventListener('error', function(e){
+						Message.error('图片解析失败');
+						reject();
 					});
 					image.src = src;
 				});
@@ -77,10 +84,16 @@ export default{
 				let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 				return new Promise((resolve, reject)=>{
 					let worker = new MainWorker();
-					worker.postMessage({imgData:imgData});
 					worker.addEventListener('message', (event)=>{
-						resolve(event.data.colorDist);
+						if (event.data.colorDist) {
+							this.progress = 100;
+							resolve(event.data.colorDist);
+						} else if (event.data.progress) {
+							this.progress = parseInt(event.data.progress * 100);
+						}
 					});
+					this.progress = 0;
+					worker.postMessage({imgData:imgData});
 				});
 			}).then((colorDist)=>{
 				let geometry = new THREE.Geometry();
@@ -99,9 +112,14 @@ export default{
 					}));
 					Object.assign(this.points.position, {x:2, y:2, z:2});
 					this.ballsGrp.add(this.points);
+					this.progress = undefined;
+					this.uploadLock = false;
 				});
 			}).catch((e)=>{
-				throw e;
+				this.uploadLock = false;
+				if (e){
+					throw e;
+				}
 			});
 			return false;
 		},
