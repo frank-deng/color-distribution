@@ -8,7 +8,7 @@ let router = new Router({
 	routes: [
 		{
 			path: '/',
-			name: '颜色分布',
+			name: 'Color Distribution',
 			component: ColorDist,
 		},
 	],

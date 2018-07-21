@@ -63,7 +63,7 @@ export default{
 						resolve(this);
 					});
 					image.addEventListener('error', function(e){
-						Message.error('图片解析失败');
+						Message.error('Invalid image file format.');
 						reject();
 					});
 					image.src = src;
