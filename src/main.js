@@ -6,10 +6,18 @@ import router from './router'
 
 import 'element-ui/lib/theme-chalk/index.css'
 
-import {Upload, Button, Progress} from 'element-ui'
+import {
+	Upload,
+	Button,
+	Progress,
+	Select,
+	Option,
+} from 'element-ui'
 Vue.use(Upload);
 Vue.use(Button);
 Vue.use(Progress);
+Vue.use(Select);
+Vue.use(Option);
 
 Vue.config.productionTip = false
 

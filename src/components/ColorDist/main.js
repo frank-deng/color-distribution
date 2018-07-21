@@ -11,11 +11,50 @@ function rgb2hex(r,g,b){
 		+ ('00'+b.toString(16)).slice(-2);
 }
 function hex2rgb(str){
-	return {
-		r: parseInt(str.slice(0, 2), 16),
-		g: parseInt(str.slice(2, 4), 16),
-		b: parseInt(str.slice(4, 6), 16),
-	};
+	return [
+		parseInt(str.slice(0, 2), 16),
+		parseInt(str.slice(2, 4), 16),
+		parseInt(str.slice(4, 6), 16),
+	];
+}
+function hex2yuv(str){
+	let r = parseInt(str.slice(0, 2), 16);
+	let g = parseInt(str.slice(2, 4), 16);
+	let b = parseInt(str.slice(4, 6), 16);
+	let y = 0.299 * r + 0.587 * g + 0.114 * b;
+	let u = -0.1678 * r - 0.3313 * g + 0.5 * b + 128;
+	let v = 0.5 * r - 0.4187 * g - 0.0813 * b + 128;
+	return [u, y, v];
+}
+function hex2hsv(str){
+	let h = undefined, s = undefined, v = undefined;
+	let r = parseInt(str.slice(0, 2), 16) / 255.0;
+	let g = parseInt(str.slice(2, 4), 16) / 255.0;
+	let b = parseInt(str.slice(4, 6), 16) / 255.0;
+	let cmax = Math.max(r,g,b), cmin = Math.min(r,g,b);
+	let delta = cmax - cmin;
+	v = cmax;
+	if (delta == 0) {
+		h = 0;
+	} else {
+		switch (cmax) {
+			case r:
+				h = 60 * (g-b) / delta;
+			break;
+			case g:
+				h = 120 + 60 * (b-r) / delta;
+			break;
+			case b:
+				h = 240 + 60 * (r-g) / delta;
+			break;
+		}
+	}
+	if (h < 0) {
+		h += 360;
+	}
+	s = (cmax == 0 ? 0 : delta / cmax);
+	h *= 255.0 / 360.0; s *= 255; v *= 255;
+	return [s, v, h];
 }
 var centerPoint = {
 	x: 130,
@@ -28,6 +67,13 @@ export default{
 		return {
 			progress: undefined,
 			uploadLock: false,
+			colorDist: undefined,
+			colorMode: 'RGB',
+			colorModeAll: [
+				{value:'RGB'},
+				{value:'YUV'},
+				{value:'HSV'},
+			],
 
 			speed: 1,
 			speedDistance: 10,
@@ -46,6 +92,14 @@ export default{
 			ballsGrp: undefined,
 			points: undefined,
 		};
+	},
+	watch: {
+		'colorMode'(){
+			this.updateColorDist();
+		},
+		'colorDist'(){
+			this.updateColorDist();
+		},
 	},
 	methods:{
 		fileUploaded(file){
@@ -69,9 +123,7 @@ export default{
 					image.src = src;
 				});
 			}).then((image)=>{
-				if (this.points){
-					this.ballsGrp.remove(this.points);
-				}
+				this.colorDist = undefined;
 
 				let canvas = document.createElement('canvas');
 				canvas.width = image.width;
@@ -96,25 +148,7 @@ export default{
 					worker.postMessage({imgData:imgData});
 				});
 			}).then((colorDist)=>{
-				let geometry = new THREE.Geometry();
-				geometry.colors = [];
-
-				DelayMapBatch(Object.keys(colorDist), (hexColor)=>{
-					let color = hex2rgb(hexColor);
-					let ox = Math.random()-0.5, oy = Math.random()-0.5, oz = Math.random()-0.5;
-					geometry.vertices.push(new THREE.Vector3(color.r + ox, color.g + oy, color.b + oz));
-					geometry.colors.push(new THREE.Color(parseInt(hexColor, 16)));
-				}, {
-					batchSize: 10000,
-				}).then(()=>{
-					this.points = new THREE.Points(geometry, new THREE.PointsMaterial({
-						vertexColors: true,
-					}));
-					Object.assign(this.points.position, {x:2, y:2, z:2});
-					this.ballsGrp.add(this.points);
-					this.progress = undefined;
-					this.uploadLock = false;
-				});
+				this.colorDist = Object.keys(colorDist);
 			}).catch((e)=>{
 				this.uploadLock = false;
 				if (e){
@@ -122,6 +156,45 @@ export default{
 				}
 			});
 			return false;
+		},
+		updateColorDist(){
+			if (undefined === this.colorDist) {
+				return;
+			}
+
+			this.uploadLock = true;
+			if (this.points){
+				this.ballsGrp.remove(this.points);
+			}
+			let geometry = new THREE.Geometry();
+			geometry.colors = [];
+			DelayMapBatch(this.colorDist, (hexColor)=>{
+				let colorFunc = {
+					'RGB': hex2rgb,
+					'YUV': hex2yuv,
+					'HSV': hex2hsv,
+				};
+				let color = colorFunc[this.colorMode](hexColor);
+
+				let ox = Math.random()-0.5, oy = Math.random()-0.5, oz = Math.random()-0.5;
+				geometry.vertices.push(new THREE.Vector3(color[0] + ox, color[1] + oy, color[2] + oz));
+				geometry.colors.push(new THREE.Color(parseInt(hexColor, 16)));
+			}, {
+				batchSize: 10000,
+			}).then(()=>{
+				this.points = new THREE.Points(geometry, new THREE.PointsMaterial({
+					vertexColors: true,
+				}));
+				Object.assign(this.points.position, {x:2, y:2, z:2});
+				this.ballsGrp.add(this.points);
+				this.progress = undefined;
+				this.uploadLock = false;
+			}).catch((e)=>{
+				this.uploadLock = false;
+				if (e){
+					throw e;
+				}
+			});
 		},
 	},
 	mounted(){
