@@ -42,7 +42,7 @@
 	position: absolute;
 	left: 0;
 	right: 0;
-	top: 0;
+	top: 40px;;
 	bottom: 0;
 }
 .toolbar-container{
@@ -51,7 +51,7 @@
 	right: 0;
 	top: 0;
 	z-index: 10;
-	opacity: 0.618;
+	height: 40px;
 }
 .el-progress{
 	position: fixed;

@@ -1,8 +1,8 @@
+import Hammer from 'hammerjs';
 import {Message} from 'element-ui'
 window.THREE = require('three');
 require('imports-loader?THREE=three!@/js/FlyControls.js').default;
 const TWEEN = require('@tweenjs/tween.js');
-import {DragHandler} from './dragHandler.js';
 import MainWorker from './main.worker.js';
 
 function rgb2hex(r,g,b){
@@ -75,11 +75,14 @@ export default{
 				{value:'HSV'},
 			],
 
-			speed: 1,
+			speed: 3,
 			speedDistance: 10,
+			speedDistanceWheel: 30,
 			horAngle: 0,
 			verAngle: 0,
 			distance: 520,
+			distanceOrig: 520,
+			distanceMax: 1000,
 
 			mouseHorAngle: 0,
 			mouseVerAngle: 0,
@@ -203,6 +206,9 @@ export default{
 				});
 			});
 		},
+		onPanning(e){
+			console.log(e);
+		},
 	},
 	mounted(){
 		var container = this.$refs.webglContainer;
@@ -269,8 +275,8 @@ export default{
 			this.horAngle += this.offsetHorAngle;
 
 			this.distance += this.offsetDistance;
-			if (this.distance >= 1000) {
-				this.distance = 1000;
+			if (this.distance >= this.distanceMax) {
+				this.distance = this.distanceMax;
 			} else if (this.distance <= 1) {
 				this.distance = 1;
 			}
@@ -336,9 +342,34 @@ export default{
 				break;
 			}
 		});
-		let dragHandler = new DragHandler((e, x0, y0, x1, y1)=>{
-			this.horAngle += -(x1 - x0) / container.offsetWidth * 10;
-			this.verAngle += (y1 - y0) / container.offsetHeight * 10;
+		window.addEventListener('wheel', (e)=>{
+			if (e.deltaY < 0) {
+				this.distance += this.speedDistanceWheel;
+			} else if (e.deltaY > 0) {
+				this.distance -= this.speedDistanceWheel;
+			}
+		});
+
+		//Handle touch event for mobile browser, as well as left mouse drag moving event
+		var hammer = new Hammer(this.$refs.webglContainer, {});
+		hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+		hammer.get('swipe').set({ enabled: false });
+		hammer.get('pinch').set({ enable: true });
+		hammer.on('pan', (e)=>{
+			this.offsetHorAngle = -e.velocityX * this.speed;
+			this.offsetVerAngle = e.velocityY * this.speed;
+		});
+		hammer.on('panend', ()=>{
+			this.offsetHorAngle = this.offsetVerAngle = 0;
+		});
+		hammer.on('pinchmove', (e)=>{
+			this.distance = this.distanceOrig + this.distanceMax / 2 * (1 - e.scale);
+		});
+		hammer.on('pinchend', (e)=>{
+			this.distanceOrig = this.distance;
+		});
+		hammer.on('mousewheel', (e)=>{
+			console.log(e);
 		});
 	},
 }
