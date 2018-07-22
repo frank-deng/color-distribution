@@ -1,6 +1,6 @@
 Color Distribution
 ==================
 
-Shows color distribution in 3D form, supports RGB, YUV, HSV color models.
+Show color distribution of an image in 3D space, supports RGB, YUV, HSV color models.
 
 

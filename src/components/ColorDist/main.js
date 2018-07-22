@@ -91,6 +91,8 @@ export default{
 			camera: undefined,
 			ballsGrp: undefined,
 			points: undefined,
+			pointsGeometry: undefined,
+			pointsMaterial: undefined,
 		};
 	},
 	watch: {
@@ -164,36 +166,41 @@ export default{
 
 			this.uploadLock = true;
 			if (this.points){
+				this.pointsGeometry.dispose();
+				this.pointsMaterial.dispose();
 				this.ballsGrp.remove(this.points);
 			}
-			let geometry = new THREE.Geometry();
-			geometry.colors = [];
-			DelayMapBatch(this.colorDist, (hexColor)=>{
-				let colorFunc = {
-					'RGB': hex2rgb,
-					'YUV': hex2yuv,
-					'HSV': hex2hsv,
-				};
-				let color = colorFunc[this.colorMode](hexColor);
+			this.$nextTick(()=>{
+				this.pointsGeometry = new THREE.Geometry();
+				this.pointsGeometry.colors = [];
+				DelayMapBatch(this.colorDist, (hexColor)=>{
+					let colorFunc = {
+						'RGB': hex2rgb,
+						'YUV': hex2yuv,
+						'HSV': hex2hsv,
+					};
+					let color = colorFunc[this.colorMode](hexColor);
 
-				let ox = Math.random()-0.5, oy = Math.random()-0.5, oz = Math.random()-0.5;
-				geometry.vertices.push(new THREE.Vector3(color[0] + ox, color[1] + oy, color[2] + oz));
-				geometry.colors.push(new THREE.Color(parseInt(hexColor, 16)));
-			}, {
-				batchSize: 10000,
-			}).then(()=>{
-				this.points = new THREE.Points(geometry, new THREE.PointsMaterial({
-					vertexColors: true,
-				}));
-				Object.assign(this.points.position, {x:2, y:2, z:2});
-				this.ballsGrp.add(this.points);
-				this.progress = undefined;
-				this.uploadLock = false;
-			}).catch((e)=>{
-				this.uploadLock = false;
-				if (e){
-					throw e;
-				}
+					let ox = Math.random()-0.5, oy = Math.random()-0.5, oz = Math.random()-0.5;
+					this.pointsGeometry.vertices.push(new THREE.Vector3(color[0] + ox, color[1] + oy, color[2] + oz));
+					this.pointsGeometry.colors.push(new THREE.Color(parseInt(hexColor, 16)));
+				}, {
+					batchSize: 10000,
+				}).then(()=>{
+					this.pointsMaterial = new THREE.PointsMaterial({
+						vertexColors: true,
+					});
+					this.points = new THREE.Points(this.pointsGeometry, this.pointsMaterial);
+					Object.assign(this.points.position, {x:2, y:2, z:2});
+					this.ballsGrp.add(this.points);
+					this.progress = undefined;
+					this.uploadLock = false;
+				}).catch((e)=>{
+					this.uploadLock = false;
+					if (e){
+						throw e;
+					}
+				});
 			});
 		},
 	},
@@ -299,9 +306,11 @@ export default{
 					this.offsetHorAngle = this.speed;
 				break;
 				case 109: //Farther
+				case 189:
 					this.offsetDistance = this.speedDistance;
 				break;
 				case 107: //Nearer
+				case 187:
 					this.offsetDistance = -this.speedDistance;
 				break;
 				default:
@@ -320,7 +329,9 @@ export default{
 					this.offsetHorAngle = 0;
 				break;
 				case 109: //Farther
+				case 189:
 				case 107: //Nearer
+				case 187:
 					this.offsetDistance = 0;
 				break;
 			}
