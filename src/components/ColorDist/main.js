@@ -1,8 +1,6 @@
 import Hammer from 'hammerjs';
 import {Message} from 'element-ui'
 window.THREE = require('three');
-require('imports-loader?THREE=three!@/js/FlyControls.js').default;
-const TWEEN = require('@tweenjs/tween.js');
 import MainWorker from './main.worker.js';
 
 function rgb2hex(r,g,b){

@@ -10,8 +10,9 @@
 				<el-button size='small' circle icon='el-icon-upload2' :disabled='uploadLock'></el-button>
 			</el-upload>
 			<el-select
+				class="selectColorMode"
 				v-model='colorMode'
-				size='small'
+				size='mini'
 				:disabled='uploadLock'>
 				<el-option
 					v-for='item in colorModeAll'
@@ -51,7 +52,8 @@
 	right: 0;
 	top: 0;
 	z-index: 10;
-	height: 40px;
+	height: 38px;
+	padding: 1px;
 }
 .el-progress{
 	position: fixed;
@@ -59,6 +61,9 @@
 	top: 0;
 	left: 0;
 	right: 0;
+}
+.selectColorMode{
+	width: 90px;
 }
 </style>
 <style>

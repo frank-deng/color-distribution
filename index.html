@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta name='viewport' id='viewport' content='width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no'/>
     <title></title>
-    <script type='text/javascript' src='./static/mobile_logger.js'></script>
+    <!--script type='text/javascript' src='./static/mobile_logger.js'></script>
 	<style type='text/css'>
 #logger_element{
-	display:none;
+	display:block;
 	position:fixed;
 	left:0;
 	right:0;
 	bottom:0;
-	height:30%;
+	height:7em;
 	font-size:1em;
 	line-height:1.1em;
 	font-family:monospace;
@@ -23,17 +23,15 @@
 	margin:0;
 	padding:0;
 	z-index: 100;
+	opacity: 0.5;
 }
 	</style>
     <script type='text/javascript'>
 window.addEventListener('load', function(){
 	var logger = document.getElementById('logger_element');
 	MobileLogger.bind(logger);
-	window.toggleConsole = function(){
-		logger.style.display = ('block' == logger.style.display ? 'none' : 'block');
-	}
 });
-    </script>
+    </script-->
   </head>
   <body>
     <div id="app"></div>
