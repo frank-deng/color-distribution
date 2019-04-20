@@ -4,6 +4,7 @@
 		<div class='toolbar-container'>
 			<el-upload class='upload-container'
 				action=''
+        accept='image/*'
 				:show-file-list='false'
 				:before-upload='fileUploaded'
 				:disabled='uploadLock'>
