@@ -44,7 +44,7 @@
 	position: absolute;
 	left: 0;
 	right: 0;
-	top: 40px;;
+	top: 40px;
 	bottom: 0;
 }
 .toolbar-container{
@@ -72,5 +72,5 @@
 	display: inline-block;
 }
 </style>
-<script src='./main.js'></script>
+<script src='@/components/index.js'></script>
 

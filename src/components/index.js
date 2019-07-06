@@ -1,7 +1,7 @@
 import Hammer from 'hammerjs';
 import {Message} from 'element-ui'
 window.THREE = require('three');
-import MainWorker from './main.worker.js';
+import MainWorker from './processor.worker.js';
 
 function rgb2hex(r,g,b){
 	return ('00'+r.toString(16)).slice(-2)
@@ -175,34 +175,33 @@ export default{
 			this.$nextTick(()=>{
 				this.pointsGeometry = new THREE.Geometry();
 				this.pointsGeometry.colors = [];
-				DelayMapBatch(this.colorDist, (hexColor)=>{
-					let colorFunc = {
-						'RGB': hex2rgb,
-						'YUV': hex2yuv,
-						'HSV': hex2hsv,
-					};
-					let color = colorFunc[this.colorMode](hexColor);
 
-					let ox = Math.random()-0.5, oy = Math.random()-0.5, oz = Math.random()-0.5;
-					this.pointsGeometry.vertices.push(new THREE.Vector3(color[0] + ox, color[1] + oy, color[2] + oz));
-					this.pointsGeometry.colors.push(new THREE.Color(parseInt(hexColor, 16)));
-				}, {
-					batchSize: 10000,
-				}).then(()=>{
-					this.pointsMaterial = new THREE.PointsMaterial({
-						vertexColors: true,
-					});
-					this.points = new THREE.Points(this.pointsGeometry, this.pointsMaterial);
-					Object.assign(this.points.position, {x:2, y:2, z:2});
-					this.ballsGrp.add(this.points);
-					this.progress = undefined;
+        try{
+          for(let hexColor of this.colorDist){
+            let colorFunc = {
+              'RGB': hex2rgb,
+              'YUV': hex2yuv,
+              'HSV': hex2hsv,
+            };
+            let color = colorFunc[this.colorMode](hexColor);
+            let ox = Math.random()-0.5, oy = Math.random()-0.5, oz = Math.random()-0.5;
+            this.pointsGeometry.vertices.push(new THREE.Vector3(color[0] + ox, color[1] + oy, color[2] + oz));
+            this.pointsGeometry.colors.push(new THREE.Color(parseInt(hexColor, 16)));
+          }
+          this.pointsMaterial = new THREE.PointsMaterial({
+            vertexColors: true,
+          });
+          this.points = new THREE.Points(this.pointsGeometry, this.pointsMaterial);
+          this.ballsGrp.add(this.points);
+          this.points.position.x = 2;
+          this.points.position.y = 2;
+          this.points.position.z = 2;
+          this.progress = undefined;
+          this.uploadLock = false;
+        }catch(e){
 					this.uploadLock = false;
-				}).catch((e)=>{
-					this.uploadLock = false;
-					if (e){
-						throw e;
-					}
-				});
+          throw e;
+        }
 			});
 		},
 		onPanning(e){
