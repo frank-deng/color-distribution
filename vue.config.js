@@ -13,7 +13,7 @@ module.exports = {
     open: false
   },
   configureWebpack:(config)=>{
-    config.module.rules.push({
+    config.module.rules.unshift({
 		  test:/\.worker\.js$/,
       use:[
         {

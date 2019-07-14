@@ -1,6 +1,6 @@
 import Hammer from 'hammerjs';
 import {Message} from 'element-ui'
-window.THREE = require('three');
+import * as THREE from 'three';
 import MainWorker from './processor.worker.js';
 
 function rgb2hex(r,g,b){
