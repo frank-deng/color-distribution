@@ -1,14 +1,3 @@
-try{
-  if('development'==process.env.NODE_ENV){
-    const VConsole = require('vconsole');
-    const vConsole = new VConsole();
-    vConsole.show();
-    self.vConsole = vConsole;
-  }
-}catch(e){
-  console.error(e);
-}
-
 import Vue from 'vue'
 import router from './router'
 
