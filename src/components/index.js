@@ -168,9 +168,11 @@ export default{
 			this.uploadLock = true;
 			if (this.points){
 				this.ballsGrp.remove(this.points);
-        this.points.dispose();
+				/*
+        		this.points.dispose();
 				this.pointsGeometry.dispose();
 				this.pointsMaterial.dispose();
+				*/
 			}
 			this.$nextTick(()=>{
 				this.pointsGeometry = new THREE.Geometry();
